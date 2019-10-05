@@ -84,7 +84,7 @@ module InlineStylesMailer
           format.send(extension) do
             case extension
             when :html
-              html = render_to_string :file => file, :layout => layout_to_use, handlers: [handler]
+              html = render_to_string :file => file, :layout => 'mailer', handlers: [handler]
               # Rails 5.1 removed render :text
               if Gem.loaded_specs['rails'].version >= Gem::Version.create('5.0')
                 render :plain => self.class.page.with_html(html).apply
@@ -100,25 +100,25 @@ module InlineStylesMailer
     end
   end
 
-  def layout_to_use
-    case call_layout
-    when ActionView::Template
-      call_layout.inspect.split("/").last.split(".").first
-    when String
-      call_layout.split("/").last.split(".").first
-    end
-  end
+  # def layout_to_use
+  #   case call_layout
+  #   when ActionView::Template
+  #     call_layout.inspect.split("/").last.split(".").first
+  #   when String
+  #     call_layout.split("/").last.split(".").first
+  #   end
+  # end
 
-  # Hack to call _layout the right way depending on the Rails version. This is a code smell
-  # telling us that we shouldn't be doing this at all...
-  def call_layout
-    if method(:_layout).arity == 1
-      # Rails 5?
-      _layout([:html])
-    else
-      # < Rails 5?
-      _layout
-    end
-  end
+  # # Hack to call _layout the right way depending on the Rails version. This is a code smell
+  # # telling us that we shouldn't be doing this at all...
+  # def call_layout
+  #   if method(:_layout).arity == 1
+  #     # Rails 5?
+  #     _layout([:html])
+  #   else
+  #     # < Rails 5?
+  #     _layout
+  #   end
+  # end
 
 end
