@@ -78,7 +78,7 @@ module InlineStylesMailer
           # e.g. template = app/views/namespace/user_mailer/welcome.html.erb
           template_path = template.inspect.split("views")[1][1..-1] # e.g. user_mailer/welcome.html.erb
           parts = template_path.split('.')
-          handler = parts.pop.to_sym # e.g. erb
+          handler = :erb # parts.pop.to_sym # e.g. erb
           extension = parts.pop.to_sym # e.g. html
           file = parts.join('.') # e.g. user_mailer/welcome (you get a deprecation warning if you don't strip off the format and handler)
           format.send(extension) do
