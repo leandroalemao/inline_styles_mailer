@@ -28,9 +28,9 @@ module InlineStylesMailer
         Dir[Rails.root.join(@stylesheet_path, "#{stylesheet}")].map {|file|
           case file
           when /\.scss$/
-            SassC::Engine.new(File.read(file), syntax: :scss).render
+            SassC::Engine.new(File.read(file), syntax: :scss, load_paths: [@stylesheet_path]).render
           when /\.sass$/
-            SassC::Engine.new(File.read(file), syntax: :sass).render
+            SassC::Engine.new(File.read(file), syntax: :sass, load_paths: [@stylesheet_path]).render
           else
             # Plain old CSS? Let's assume it is.
             File.read(file)
