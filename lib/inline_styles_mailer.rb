@@ -73,24 +73,27 @@ module InlineStylesMailer
           i = options[:parts_order].index(mime_type)
           i > -1 ? i : 99
         }.each do |template|
+          p template
         # templates.each do |template|
           # e.g. template = app/views/user_mailer/welcome.html.erb
           # e.g. template = app/views/namespace/user_mailer/welcome.html.erb
-          template_path = template.inspect.split("views")[1][1..-1] # e.g. user_mailer/welcome.html.erb
+          template_path = template.short_identifier.split("views")[1][1..-1] # e.g. user_mailer/welcome.html.erb
+          p template_path
           parts = template_path.split('.')
-          handler = :erb # parts.pop.to_sym # e.g. erb
-          extension = :html # parts.pop.to_sym # e.g. html
+          handler = parts.pop.to_sym # e.g. erb
+          extension = parts.pop.to_sym # e.g. html
           file = parts.join('.') # e.g. user_mailer/welcome (you get a deprecation warning if you don't strip off the format and handler)
           format.send(extension) do
             case extension
             when :html
-              html = render_to_string :file => file, :layout => 'mailer', handlers: [handler]
+              html = render_to_string :file => file, :layout => @layout, handlers: [handler]
+              render :plain => self.class.page.with_html(html).apply
               # Rails 5.1 removed render :text
-              if Gem.loaded_specs['rails'].version >= Gem::Version.create('5.0')
-                render :plain => self.class.page.with_html(html).apply
-              else
-                render :text => self.class.page.with_html(html).apply
-              end
+              # if Gem.loaded_specs['rails'].version >= Gem::Version.create('5.0')
+              #   render :plain => self.class.page.with_html(html).apply
+              # else
+              #   render :text => self.class.page.with_html(html).apply
+              # end
             else
               render
             end
@@ -100,25 +103,7 @@ module InlineStylesMailer
     end
   end
 
-  # def layout_to_use
-  #   case call_layout
-  #   when ActionView::Template
-  #     call_layout.inspect.split("/").last.split(".").first
-  #   when String
-  #     call_layout.split("/").last.split(".").first
-  #   end
-  # end
-
-  # # Hack to call _layout the right way depending on the Rails version. This is a code smell
-  # # telling us that we shouldn't be doing this at all...
-  # def call_layout
-  #   if method(:_layout).arity == 1
-  #     # Rails 5?
-  #     _layout([:html])
-  #   else
-  #     # < Rails 5?
-  #     _layout
-  #   end
-  # end
-
+  def layout(l)
+    @layout ||= l
+  end
 end
