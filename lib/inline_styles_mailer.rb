@@ -28,9 +28,9 @@ module InlineStylesMailer
         Dir[Rails.root.join(@stylesheet_path, "#{stylesheet}")].map {|file|
           case file
           when /\.scss$/
-            SassC::Engine.new(File.read(file), syntax: :scss, load_paths: [@stylesheet_path]).render
+            SassC::Engine.new(File.read(file), syntax: :scss, style: :compressed).render
           when /\.sass$/
-            SassC::Engine.new(File.read(file), syntax: :sass, load_paths: [@stylesheet_path]).render
+            SassC::Engine.new(File.read(file), syntax: :sass, style: :compressed).render
           else
             # Plain old CSS? Let's assume it is.
             File.read(file)
@@ -73,12 +73,9 @@ module InlineStylesMailer
           i = options[:parts_order].index(mime_type)
           i > -1 ? i : 99
         }.each do |template|
-          p template
-        # templates.each do |template|
           # e.g. template = app/views/user_mailer/welcome.html.erb
           # e.g. template = app/views/namespace/user_mailer/welcome.html.erb
-          template_path = template.short_identifier.split("views")[1][1..-1] # e.g. user_mailer/welcome.html.erb
-          p template_path
+          template_path = template.inspect.split("views")[1][1..-1] # e.g. user_mailer/welcome.html.erb
           parts = template_path.split('.')
           handler = parts.pop.to_sym # e.g. erb
           extension = parts.pop.to_sym # e.g. html
@@ -86,14 +83,17 @@ module InlineStylesMailer
           format.send(extension) do
             case extension
             when :html
-              html = render_to_string :file => file, :layout => @layout, handlers: [handler]
-              render :plain => self.class.page.with_html(html).apply
+              if Gem.loaded_specs['rails'].version >= Gem::Version.create('6.0')
+                html = render_to_string :template => file, :layout => layout_to_use
+              else
+                html = render_to_string :file => file, :layout => layout_to_use, handlers: [handler]
+              end
               # Rails 5.1 removed render :text
-              # if Gem.loaded_specs['rails'].version >= Gem::Version.create('5.0')
-              #   render :plain => self.class.page.with_html(html).apply
-              # else
-              #   render :text => self.class.page.with_html(html).apply
-              # end
+              if Gem.loaded_specs['rails'].version >= Gem::Version.create('5.0')
+                render :plain => self.class.page.with_html(html).apply
+              else
+                render :text => self.class.page.with_html(html).apply
+              end
             else
               render
             end
@@ -103,7 +103,26 @@ module InlineStylesMailer
     end
   end
 
-  def layout(l)
-    @layout ||= l
+  def layout_to_use
+    case call_layout
+    when ActionView::Template
+      call_layout.inspect.split("/").last.split(".").first
+    when String
+      call_layout.split("/").last.split(".").first
+    end
+  end
+
+  # Hack to call _layout the right way depending on the Rails version. This is a code smell
+  # telling us that we shouldn't be doing this at all...
+  def call_layout
+    if method(:_layout).arity == 2
+      _layout(lookup_context, [:html])
+    elsif method(:_layout).arity == 1
+      # Rails 5?
+      _layout([:html])
+    else
+      # < Rails 5?
+      _layout
+    end
   end
 end

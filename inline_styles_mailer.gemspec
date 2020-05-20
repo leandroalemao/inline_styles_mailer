@@ -21,5 +21,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec"
   s.add_runtime_dependency "inline_styles"
   s.add_runtime_dependency "rails", ">= 3.1"
-  s.add_runtime_dependency "sassc-rails"
+  s.add_runtime_dependency "sassc-rails", '~> 2'
 end
