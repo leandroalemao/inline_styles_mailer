@@ -11,8 +11,6 @@ Gem::Specification.new do |s|
   s.summary     = %q{Convenient use of inline_styles gem with Rails 3.1+ and Rails 4}
   s.description = %q{Convenient use of inline_styles gem with Rails 3.1+ and Rails 4}
 
-  s.rubyforge_project = "inline_styles_mailer"
-
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
